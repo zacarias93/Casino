@@ -1,9 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by zaclee on 10/1/16.
- */
 public class BlackJack {
 
     BlackJackDisplay blackJackDisplay = new BlackJackDisplay();
@@ -11,11 +8,15 @@ public class BlackJack {
 
     private boolean power = true;
     private boolean eligbleToPlay = false;
-    private boolean playerBust;
-    private boolean playerStand;
-    private boolean dealerBust;
-    private boolean dealerStand;
+    boolean playerBust;
+    boolean playerStand;
+    boolean dealerBust;
+    boolean dealerStand;
     private int pot = 0;
+    int dealerHandValue = 0;
+    int playerHandValue = 0;
+    Player player = new Player();
+    Hand dealer = new Hand();
 
     List<Card> dealerHand = new ArrayList<Card>();
     List<Card> playerHand = new ArrayList<Card>();
@@ -41,7 +42,6 @@ public class BlackJack {
                     break;
                 default:
                     System.out.println("Please select one of the options.");
-
             }
         }
     }
@@ -53,29 +53,13 @@ public class BlackJack {
         showHandStatus();
         while (!playerStand && !playerBust) {
             hitOrStand();
-            checkBust(playerHand);
+            checkBustPlayer(playerHand);
             showHandStatus();
         }
         dealerLogic();
-        evaluateRound(player);
+        playerWin(player);
         showResult();
         showCurrentBalance(player);
-    }
-
-    void dealerLogic() {
-        while(!dealerStand && !dealerBust) {
-            if(getHandValue(dealerHand) < 17) {
-                Card card = deck.dealOneCard();
-                dealerHand.add(card);
-                System.out.println("Dealer was dealt: " + card.getCardName());
-            }
-            else if(getHandValue(dealerHand) < 22) {
-                dealerStand = true;
-            }
-            else {
-                dealerBust = true;
-            }
-        }
     }
 
     void initializeRound() {
@@ -86,34 +70,59 @@ public class BlackJack {
         playerStand = false;
         dealerBust = false;
         dealerStand = false;
+        player = new Player();
+        dealer = new Hand();
+    }
+
+    void dealerLogic() {
+        while(!dealerStand && !dealerBust) {
+            if(getHandValue(dealerHand) < 17) {
+                Card card = deck.dealOneCard();
+                dealerHand.add(card);
+                System.out.println("Dealer was dealt: " + card.getCardName() + "\nTotal: " + getHandValue(dealerHand) + "\n");
+            }
+            else if(getHandValue(dealerHand) < 22) {
+                dealerStand = true;
+            }
+            else {
+                dealerBust = true;
+            }
+        }
     }
 
     void showResult() {
+//        String message =
         System.out.println("Dealer has: " + getHandValue(dealerHand));
         System.out.println("Player has: " + getHandValue(playerHand));
     }
 
-    void evaluateRound(Player player) {
-        int dealerHandValue = getHandValue(dealerHand);
-        int playerHandValue = getHandValue(playerHand);
+    boolean playerWin(Player player) {
+        dealerHandValue = getHandValue(dealerHand);
+        playerHandValue = getHandValue(playerHand);
         if(playerBust == true) {
             System.out.println("You busted!");
+            return false;
         }
         else if(dealerBust == true && playerBust == false) {
             player.setBalance(player.getBalance()+pot);
             System.out.println("Dealer busted you win!");
+            return true;
 
         }
-        else if(dealerHandValue == playerHandValue) {
-            player.setBalance(player.getBalance()+pot/2);
-            System.out.println("It was a push.");
-        }
+//        DEALER WINS ON TIE
+//        else if(dealerHandValue == playerHandValue) {
+//            player.setBalance(player.getBalance()+pot/2);
+//            System.out.println("It was a push.");
+//            return false;
+//        }
         else if(dealerHandValue < playerHandValue) {
             player.setBalance(player.getBalance()+pot);
             System.out.println("Congrats you won!");
+            return true;
         }
         else {
             System.out.println("Better luck next time!");
+            return false;
         }
     }
 
@@ -121,12 +130,12 @@ public class BlackJack {
         System.out.println("How much would you like to bet?");
         System.out.println("Your current balance is: " + player.getBalance());
         int bet = userInput.promptInt();
-        if(bet <= player.getBalance()) {
+        if(bet <= player.getBalance() && bet > 0) {
             player.setBalance(player.getBalance()-bet);
             pot = bet * 2;
         }
         else {
-            System.out.println("You can only bet as much money as you currently have...");
+            System.out.println("Please enter a number between 0 - " + player.getBalance());
             makeBet(player);
         }
     }
@@ -137,9 +146,21 @@ public class BlackJack {
         playerHand.add(deck.dealOneCard());
     }
 
-    void checkBust(List<Card> hand) {
-        if(getHandValue(hand) > 21) {
+    void checkBustPlayer(List<Card> hand) { //switch this later to make player hold hand / value to pass player in as para
+        if(getHandValue(hand) > 21) { // hand should have its own values : bust / value
             playerBust = true;
+        }
+    }
+
+    void checkBustDealer(List<Card> hand) {
+        if(getHandValue(hand) > 21) {
+            dealerBust = true;
+        }
+    }
+
+    void checkBust(Hand hand) {
+        if(hand.getValue() > 21) {
+            hand.setBust(true);
         }
     }
 
@@ -147,6 +168,13 @@ public class BlackJack {
         int handValue = 0;
         for(Card x : hand) {
             handValue += x.getBlackJackValue();
+        }
+        if(handValue > 21) {
+            for(Card x : hand) {
+                if(x.getValueAsString().equalsIgnoreCase("ace")){
+                    handValue-= 10;
+                }
+            }
         }
         return handValue;
     }
@@ -160,6 +188,7 @@ public class BlackJack {
         for(Card x : playerHand) {
             System.out.println(x.getCardName());
         }
+        System.out.println("\n");
     }
 
     void hitOrStand() {

@@ -6,7 +6,7 @@ public class Display {
     UserInput userInput = new UserInput();
 
     public void homeScreen(){
-        System.out.println("Welcome to Zac's casino!");
+        System.out.println("Welcome to Zac's Casino!");
     }
 
     void menuOptions() {

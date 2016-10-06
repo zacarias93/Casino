@@ -24,7 +24,7 @@ public class Deck {
     }
 
     Card dealOneCard() {
-        int randomNumber = (int) Math.floor(Math.random()*deck.size()-2);
+        int randomNumber = (int) Math.floor(Math.random()*deck.size());
         return deck.remove(randomNumber);
     }
 

@@ -15,6 +15,7 @@ public class Card {
         this.suit = suit;
     }
 
+
     public int getSuit() {
         return suit;
     }
@@ -71,6 +72,4 @@ public class Card {
         name = this.getValueAsString() + " of " + this.getSuitAsString();
         return name;
     }
-
-
 }

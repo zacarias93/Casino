@@ -1,10 +1,15 @@
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by zaclee on 10/1/16.
  */
 public class Player {
 
     int balance=0;
-
+    int playerHandValue = 0;
+    List<Card> playerHand = new ArrayList<Card>();
+    Hand hand = new Hand();
 
     public int getBalance() {
         return balance;
