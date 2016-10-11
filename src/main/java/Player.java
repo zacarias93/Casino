@@ -7,9 +7,18 @@ import java.util.List;
 public class Player {
 
     int balance=0;
-    int playerHandValue = 0;
-    List<Card> playerHand = new ArrayList<Card>();
+    boolean stand = false;
     Hand hand = new Hand();
+
+
+
+    public boolean isStand() {
+        return stand;
+    }
+
+    public void setStand(boolean stand) {
+        this.stand = stand;
+    }
 
     public int getBalance() {
         return balance;

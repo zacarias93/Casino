@@ -1,4 +1,3 @@
-import java.util.ArrayList;
 import java.util.List;
 
 public class BlackJack {
@@ -8,19 +7,9 @@ public class BlackJack {
 
     private boolean power = true;
     private boolean eligbleToPlay = false;
-    boolean playerBust;
-    boolean playerStand;
-    boolean dealerBust;
-    boolean dealerStand;
+    private boolean dealerStand;
     private int pot = 0;
-    int dealerHandValue = 0;
-    int playerHandValue = 0;
-    Player player = new Player();
-    Hand dealer = new Hand();
-
-    List<Card> dealerHand = new ArrayList<Card>();
-    List<Card> playerHand = new ArrayList<Card>();
-
+    Hand dealerHand;
     Deck deck;
 
     void run(Player player) {
@@ -47,67 +36,61 @@ public class BlackJack {
     }
 
     void playBlackJack(Player player) {
-        initializeRound();
+        initializeRound(player);
         makeBet(player);
-        dealInitialHand();
-        showHandStatus();
-        while (!playerStand && !playerBust) {
-            hitOrStand();
-            checkBustPlayer(playerHand);
-            showHandStatus();
+        dealInitialHand(player);
+        showHandStatus(player);
+        while (player.stand == false && player.hand.bust == false) {
+            hitOrStand(player);
+            checkBust(player.hand);
+            showHandStatus(player);
         }
         dealerLogic();
         playerWin(player);
-        showResult();
+        showResult(player);
         showCurrentBalance(player);
+        resetHand(player);
     }
 
-    void initializeRound() {
+    void initializeRound(Player player) {
         deck = new Deck();
-        dealerHand = new ArrayList<Card>();
-        playerHand = new ArrayList<Card>();
-        playerBust = false;
-        playerStand = false;
-        dealerBust = false;
         dealerStand = false;
-        player = new Player();
-        dealer = new Hand();
+        dealerHand = new Hand();
+        player.setStand(false);
+        player.hand.setBust(false);
     }
 
     void dealerLogic() {
-        while(!dealerStand && !dealerBust) {
-            if(getHandValue(dealerHand) < 17) {
+        while(!dealerStand && !dealerHand.bust) {
+            if(dealerHand.calcHandValue()< 17) {
                 Card card = deck.dealOneCard();
-                dealerHand.add(card);
-                System.out.println("Dealer was dealt: " + card.getCardName() + "\nTotal: " + getHandValue(dealerHand) + "\n");
+                dealerHand.cards.add(card);
+                System.out.println("Dealer was dealt: " + card.getCardName() + "\nTotal: " + dealerHand.calcHandValue() + "\n");
             }
-            else if(getHandValue(dealerHand) < 22) {
+            else if(dealerHand.calcHandValue() < 22) {
                 dealerStand = true;
             }
             else {
-                dealerBust = true;
+                dealerHand.bust = true;
             }
         }
     }
 
-    void showResult() {
+    void showResult(Player player) {
 //        String message =
-        System.out.println("Dealer has: " + getHandValue(dealerHand));
-        System.out.println("Player has: " + getHandValue(playerHand));
+        System.out.println("Dealer has: " + dealerHand.calcHandValue());
+        System.out.println("Player has: " + player.hand.calcHandValue());
     }
 
     boolean playerWin(Player player) {
-        dealerHandValue = getHandValue(dealerHand);
-        playerHandValue = getHandValue(playerHand);
-        if(playerBust == true) {
+        if(player.hand.bust) {
             System.out.println("You busted!");
             return false;
         }
-        else if(dealerBust == true && playerBust == false) {
+        else if(dealerHand.bust) {
             player.setBalance(player.getBalance()+pot);
             System.out.println("Dealer busted you win!");
             return true;
-
         }
 //        DEALER WINS ON TIE
 //        else if(dealerHandValue == playerHandValue) {
@@ -115,7 +98,7 @@ public class BlackJack {
 //            System.out.println("It was a push.");
 //            return false;
 //        }
-        else if(dealerHandValue < playerHandValue) {
+        else if(dealerHand.calcHandValue() < player.hand.getValue()) {
             player.setBalance(player.getBalance()+pot);
             System.out.println("Congrats you won!");
             return true;
@@ -140,64 +123,49 @@ public class BlackJack {
         }
     }
 
-    void dealInitialHand() {
-        dealerHand.add(deck.dealOneCard());
-        playerHand.add(deck.dealOneCard());
-        playerHand.add(deck.dealOneCard());
+    void dealInitialHand(Player player) {
+        dealerHand.cards.add(deck.dealOneCard());
+        player.hand.cards.add(deck.dealOneCard());
+        player.hand.cards.add(deck.dealOneCard());
     }
 
-    void checkBustPlayer(List<Card> hand) { //switch this later to make player hold hand / value to pass player in as para
-        if(getHandValue(hand) > 21) { // hand should have its own values : bust / value
-            playerBust = true;
-        }
-    }
-
-    void checkBustDealer(List<Card> hand) {
-        if(getHandValue(hand) > 21) {
-            dealerBust = true;
-        }
-    }
+//    void checkBustPlayer(List<Card> hand) { //switch this later to make player hold hand / value to pass player in as para
+//        if(getHandValue(hand) > 21) { // hand should have its own values : bust / value
+//            playerBust = true;
+//        }
+//    }
+//
+//    void checkBustDealer(List<Card> hand) {
+//        if(getHandValue(hand) > 21) {
+//            dealerBust = true;
+//        }
+//    }
 
     void checkBust(Hand hand) {
-        if(hand.getValue() > 21) {
+        if(hand.calcHandValue() > 21) {
             hand.setBust(true);
         }
     }
 
-    int getHandValue(List<Card> hand) { // if card = 2-10 value = value if JQK = 10 if A = 11
-        int handValue = 0;
-        for(Card x : hand) {
-            handValue += x.getBlackJackValue();
-        }
-        if(handValue > 21) {
-            for(Card x : hand) {
-                if(x.getValueAsString().equalsIgnoreCase("ace")){
-                    handValue-= 10;
-                }
-            }
-        }
-        return handValue;
-    }
-
-    void showHandStatus() {
-        System.out.println("Dealer has: " + getHandValue(dealerHand));
-        for(Card x : dealerHand) {
+    void showHandStatus(Player player) {
+        System.out.println("Dealer has: " + dealerHand.calcHandValue());
+        for(Card x : dealerHand.cards) {
             System.out.println(x.getCardName());
         }
-        System.out.println("\nYou have: " + getHandValue(playerHand));
-        for(Card x : playerHand) {
+        System.out.println("\nYou have: " + player.hand.calcHandValue());
+        for(Card x : player.hand.cards) {
             System.out.println(x.getCardName());
         }
         System.out.println("\n");
     }
 
-    void hitOrStand() {
+    void hitOrStand(Player player) {
             blackJackDisplay.gameChoice();
             int choice = userInput.promptInt();
             switch (choice) {
-                case 1: playerHand.add(deck.dealOneCard());
+                case 1: player.hand.cards.add(deck.dealOneCard());
                     break;
-                case 2: playerStand = true;
+                case 2: player.setStand(true);
                     break;
                 default:
                     System.out.println("Please select an option");
@@ -217,6 +185,15 @@ public class BlackJack {
             System.out.println("Sorry you do not have enough to play.");
             eligbleToPlay = false;
             return eligbleToPlay;
+        }
+    }
+
+    void resetHand(Player player) {
+        for(int i=0; i<player.hand.cards.size(); i++) {
+            player.hand.cards.remove(0);
+            if(player.hand.cards.size() != 0) {
+                resetHand(player);
+            }
         }
     }
 }

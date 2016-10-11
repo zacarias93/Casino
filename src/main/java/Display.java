@@ -29,6 +29,10 @@ public class Display {
         System.out.println("Please go add more money to your account.");
     }
 
+    String display(String str) {
+        return str;
+    }
+
 
 
 }

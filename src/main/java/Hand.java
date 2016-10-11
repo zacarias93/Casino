@@ -5,16 +5,34 @@ import java.util.List;
 public class Hand {
 
     boolean bust = false;
-    int value = 0;
-    List<Card> hand = new ArrayList<Card>();
+    int handValue = 0;
+    List<Card> cards;
+
+    Hand() {
+        cards = new ArrayList<Card>();
+    }
+
+
+
+
+    int calcHandValue() { // if card = 2-10 value = value if JQK = 10 if A = 11
+        this.handValue = 0;
+        for(Card x : this.cards) {
+            this.handValue += x.getBlackJackValue();
+        }
+        if(this.handValue > 21) {
+            for(Card x : this.cards) {
+                if(x.getValueAsString().equalsIgnoreCase("ace")){
+                    this.handValue-= 10;
+                }
+            }
+        }
+        return this.handValue;
+    }
 
 
     public int getValue() {
-        return value;
-    }
-
-    public void setValue(int value) {
-        this.value = value;
+        return handValue;
     }
 
     public boolean isBust() {

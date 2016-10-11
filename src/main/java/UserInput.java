@@ -15,5 +15,9 @@ public class UserInput {
         return scan.nextInt();
     }
 
+    void displayString(String str) {
+        System.out.println(str);
+    }
+
 
 }
